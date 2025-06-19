@@ -6,8 +6,8 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include "DSelector/DTreeInterface.h"
-#include "particleType.h"
+#include "../../libraries/DSelector/DTreeInterface.h"
+#include "../../libraries/DSelector/particleType.h"
 
 // function declarations
 void Print_Usage(void);
