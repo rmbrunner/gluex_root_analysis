@@ -18,7 +18,7 @@
 #include <TMap.h>
 #include <TObjString.h>
 
-#include <particleType.h>
+#include "particleType.h"
 
 using namespace std;
 
