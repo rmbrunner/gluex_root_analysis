@@ -92,8 +92,7 @@ void Print_Usage(void)
             "<selector_base_name>"
          << endl
          << "    --extra-defaults   : auto-generate common flat-tree branches "
-            "(masses, stats, "
-            "dEdx, frames)"
+            "(1D mass plots, 2D correlation plots, Dalitz plots, angular distributions)"
          << endl
          << "  input_root_file     : ROOT file containing the TTree" << endl
          << "  tree_name           : name of TTree inside ROOT file" << endl
@@ -344,10 +343,9 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     locSourceStream << "	//USERS: SET OUTPUT FILE NAME //can be overriden by "
                        "user in PROOF"
                     << endl;
-    locSourceStream << "	dOutputFileName = \"" << locSelectorBaseName
-                    << ".root\"; //\"\" for none" << endl;
+    locSourceStream << "	dOutputFileName = \"\"; ";
     locSourceStream << "	dOutputTreeFileName = \"\"; //\"\" for none" << endl;
-    locSourceStream << "	dFlatTreeFileName = \"\"; //output flat tree (one "
+    locSourceStream << "	dFlatTreeFileName = \"" << locSelectorBaseName << ".root\"; //output flat tree (one "
                        "combo per tree "
                        "entry), \"\" for none"
                     << endl;
@@ -527,7 +525,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                 locSourceStream << "    "
                                    "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"mass_"
                                 << name << "_measured\");\n";
-                csvOut << "mass_" << name << endl;
+                csvOut << name << endl;
             }
         }
 
@@ -579,11 +577,11 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
         for (size_t r = 2; r <= names.size(); ++r)
         {
             vector<int> idx(r);
-            function<void(int, int)> comb = [&](int start, int depth) {
+            function<void(int, int)> comb = [&](int start, unsigned long int depth) {
                 if (depth == r)
                 {
                     string combo;
-                    for (int i = 0; i < r; ++i)
+                    for (unsigned long int i = 0; i < r; ++i)
                     {
                         combo += names[idx[i]];
                         if (i + 1 < r)
@@ -612,13 +610,11 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                                        "dFlatTreeInterface->Create_Branch_Fundamental<"
                                        "Double_t>(\"phi_lab_"
                                     << combo << "\");\n";
-                    csvOut << "phi_lab_" << combo << endl;
                     locSourceStream << "    "
                                        "dFlatTreeInterface->Create_Branch_Fundamental<"
                                        "Double_t>(\"phi_lab_"
                                     << combo << "_measured\");\n";
-                    csvOut << "mass_" << combo << endl;
-                    csvOut << "costh_lab_" << combo << endl;
+                    csvOut << combo << endl;
                     return;
                 }
                 for (int i = start; i < int(names.size()); ++i)
@@ -1596,12 +1592,12 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
             for (size_t r = 2; r <= names.size(); ++r)
             {
                 vector<int> idx(r);
-                function<void(int, int)> comb = [&](int start, int depth) {
+                function<void(int, int)> comb = [&](int start, unsigned long int depth) {
                     if (depth == r)
                     {
                         // build the combo key, e.g. "PiPlus_PiMinus_Proton"
                         string combo;
-                        for (int i = 0; i < r; ++i)
+                        for (unsigned long int i = 0; i < r; ++i)
                         {
                             combo += names[idx[i]];
                             if (i + 1 < r)
@@ -1614,7 +1610,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                         locSourceStream
                             << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_" << combo
                             << "\", (";
-                        for (int i = 0; i < r; ++i)
+                        for (unsigned long int i = 0; i < r; ++i)
                         {
                             if (i)
                             {
@@ -1628,7 +1624,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                         locSourceStream
                             << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_" << combo
                             << "_measured\", (";
-                        for (int i = 0; i < r; ++i)
+                        for (unsigned long int i = 0; i < r; ++i)
                         {
                             if (i)
                             {
@@ -1642,7 +1638,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                         locSourceStream
                             << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_lab_"
                             << combo << "\", (";
-                        for (int i = 0; i < r; ++i)
+                        for (unsigned long int i = 0; i < r; ++i)
                         {
                             if (i)
                             {
@@ -1656,7 +1652,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                         locSourceStream
                             << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_lab_"
                             << combo << "_measured\", (";
-                        for (int i = 0; i < r; ++i)
+                        for (unsigned long int i = 0; i < r; ++i)
                         {
                             if (i)
                             {
@@ -1670,7 +1666,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                         locSourceStream
                             << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_lab_"
                             << combo << "\", (";
-                        for (int i = 0; i < r; ++i)
+                        for (unsigned long int i = 0; i < r; ++i)
                         {
                             if (i)
                             {
@@ -1684,7 +1680,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                         locSourceStream
                             << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_lab_"
                             << combo << "_measured\", (";
-                        for (int i = 0; i < r; ++i)
+                        for (unsigned long int i = 0; i < r; ++i)
                         {
                             if (i)
                             {
