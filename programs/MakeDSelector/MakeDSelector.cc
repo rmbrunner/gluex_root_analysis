@@ -345,7 +345,8 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                     << endl;
     locSourceStream << "	dOutputFileName = \"\"; ";
     locSourceStream << "	dOutputTreeFileName = \"\"; //\"\" for none" << endl;
-    locSourceStream << "	dFlatTreeFileName = \"" << locSelectorBaseName << ".root\"; //output flat tree (one "
+    locSourceStream << "	dFlatTreeFileName = \"" << locSelectorBaseName
+                    << ".root\"; //output flat tree (one "
                        "combo per tree "
                        "entry), \"\" for none"
                     << endl;
@@ -625,6 +626,23 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
             };
             comb(0, 0);
         }
+        string uv = "PiPlus_PiMinus1_Photon1_Photon2 \\\\ Must be user defined!!!";
+        locSourceStream << "    "
+                           "dFlatTreeInterface->Create_Branch_Fundamental<"
+                           "Double_t>(\"costh_GJ_"
+                        << uv << "\");\n";
+        locSourceStream << "    "
+                           "dFlatTreeInterface->Create_Branch_Fundamental<"
+                           "Double_t>(\"phi_GJ_"
+                        << uv << "\");\n";
+        locSourceStream << "    "
+                           "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
+                           "(\"costh_H_"
+                        << uv << "\");\n";
+        locSourceStream << "    "
+                           "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
+                           "(\"phi_H_"
+                        << uv << "\");\n";
         // fit stats
         // locSourceStream << "    "
         //                   "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
@@ -650,34 +668,6 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
         //                      << name << "\");\n";
         //    }
         //  }
-        // frames for all
-
-        // for (auto &step : locComboInfoMap) {
-        //  for (auto &p : step.second) {
-        //    string name = p.second.second;
-        //    if (!IsRelevant(name)) {
-        //      continue;
-        //    }
-        //    locSourceStream << "    "
-        //                       "dFlatTreeInterface->Create_Branch_Fundamental<"
-        //                       "Double_t>(\"costh_GJ_"
-        //                    << name << "\");\n";
-        //    locSourceStream << "    "
-        //                       "dFlatTreeInterface->Create_Branch_Fundamental<"
-        //                       "Double_t>(\"phi_GJ_"
-        //                    << name << "\");\n";
-        //    locSourceStream
-        //        << "    "
-        //           "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
-        //           "(\"costh_Helicity_"
-        //        << name << "\");\n";
-        //    locSourceStream
-        //        << "    "
-        //           "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
-        //           "(\"phi_Helicity_"
-        //        << name << "\");\n";
-        //  }
-        //}
         locSourceStream << "    // == End extra defaults ==\n";
 
         // locSourceStream << "}\n\n";
@@ -1301,6 +1291,75 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
         }
         locSourceStream << ";" << endl;
         locSourceStream << endl;
+        locSourceStream
+            << "TLorentzVector = particleXP4 = CM_Boost * (locPiPlusP4 + loc PiMinus1P4 + "
+               "locPhoton1P4 + locPhoton1P4); \\\\ For now must be user defined!!!"
+            << endl;
+        locSourceStream << "TLorentzVector CM_P4 = locBeamP4 + dTargetP4;" << endl
+                        << "TLorentzVector CM_Boost(-CM_P4.BoostVector());" << endl
+                        << "TLorentzVector beamCM = CM_Boost * locBeam;" << endl
+                        << "TLorentzVector targetCM = CM_Boost * dTargetP4;" << endl;
+
+        for (auto &step : locComboInfoMap)
+        {
+            for (auto &p : step.second)
+            {
+                string name = p.second.second;
+                if (!IsRelevant(name))
+                {
+                    continue;
+                }
+                locSourceStream << "TLorentzVector " << name << "CM = CM_Boost *"
+                                << " loc" << name << "P4" << endl;
+            }
+        }
+
+        locSourceStream << endl
+                        << "TLorentzVector particleXCM = CM_Boost * particleXP4;" << endl
+                        << endl
+                        << "TLorentzVector restFrameXBoost(-particleXCM.BoostVector());" << endl;
+
+        locSourceStream << "TLorentzVector referenceGJ = restFrameXBoost * (PiPlusCM + PiMinus1CM "
+                           "+ Photon1CM + Photon2CM); \\\\ For now must "
+                           "be user defined!!!"
+                        << endl;
+        locSourceStream << "TLorentzVector beamGJ = restFrameXBoost * beamCM;" << endl
+                        << "TLorentzVector targetGJ = restFrameXBoost * targetCM;" << endl;
+        for (auto &step : locComboInfoMap)
+        {
+            for (auto &p : step.second)
+            {
+                string name = p.second.second;
+                if (!IsRelevant(name))
+                {
+                    continue;
+                }
+                locSourceStream << "TLorentzVector " << name << "GJ = restFrameXBoost *" << name
+                                << "CM" << endl
+                                << "TVector3" << name << "P3 = " << name << "GJ.Vect();" << endl;
+            }
+        }
+
+        locSourceStream
+            << "TVector3 z_GJ = (beamGJ.Vect()).Unit();" << endl
+            << "TVector3 y_GJ = ((beamCM.Vect()).Cross(-protonCM.Vect())).Unit();" << endl
+            << "TVector3 x_GJ = ((y_GJ).Cross(z_GJ)).Unit();" << endl
+            << "double costh_GJ_PiPlus_PiMinus1_Photon1_Photon2 = (referenceGJ.Vect()).Dot(z_GJ) / "
+               "(referenceGJ.Vect()).Mag();"
+            << endl
+            << "double phi_GJ_PiPlus_PiMinus1_Photon1_Photon2 = "
+               "TMath::ATan2((referenceGJ.Vect()).Dot(y_GJ), (referenceGJ.Vect()).Dot(x_GJ));"
+            << endl
+            << "TVector3 z_H = particleXCM.Vect.Unit();" << endl
+            << "TVector3 y_H = y_GJ;" << endl
+            << "TVector3 x_H = y_H.Cross(z_H).Unit();" << endl
+            << "TVector3 costh_H_PiPlus_PiMinus1_Photon1_Photon2 = referenceGJ.Vect().Dot(z_H) / "
+               "referenceGJ.Vect().Mag();"
+            << endl
+            << "TVector3 phi_H_PiPlus_PiMinus1_Photon1_Photon2 = "
+               "TMath::ATan2(referenceGJ.Vect().Dot(y_H), referenceGJ.Vect().Dot(x_H));"
+            << endl;
+
         locSourceStream << "		/******************************************** EXECUTE "
                            "ANALYSIS "
                            "ACTIONS *******************************************/"
@@ -1700,6 +1759,22 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                 };
                 comb(0, 0);
             }
+
+            // costh_GJ_
+            locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_GJ_"
+                            << uv << "\", costh_GJ_" << uv << ";\n";
+
+            // phi_GJ
+            locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_GJ_" << uv
+                            << "\", phi_GJ_" << uv << ";\n";
+
+            // costh_H_
+            locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_H_"
+                            << uv << "\", costh_H_" << uv << ";\n";
+
+            // phi_H
+            locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_H_" << uv
+                            << "\", phi_H_" << uv << ";\n";
             // fit stats
             // locSourceStream
             //    << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"chisq\", "
@@ -1738,39 +1813,6 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                     }
                 }
             }
-            // GJ & Helicity
-            // for (auto &step : locComboInfoMap) {
-            //  for (auto &p : step.second) {
-            //    string name = p.second.second;
-            //    if (!IsRelevant(name)) {
-            //      continue;
-            //    }
-            //    // GJ angles
-            //    locSourceStream
-            //        << "    "
-            //           "dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_GJ_"
-            //        << name << "\",
-
-            //        dAnalysisUtilities.Costheta_GottfriedJackson(loc"
-            //        << name << "P4, beamP4, targetP4));\n";
-            //    locSourceStream
-            //        << " dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_GJ_"
-            //        << name << "\", dAnalysisUtilities.Phi_GottfriedJackson(loc"
-            //        << name << "P4, beamP4, targetP4));\n";
-            //    // Helicity angles (requires parent) -- user must set parentP4
-            //    locSourceStream << "    "
-            //                       "dFlatTreeInterface->Fill_Fundamental<Double_t>("
-            //                       "\"costh_Helicity_"
-            //                    << name
-            //                    << "\", dAnalysisUtilities.Costheta_Helicity(loc"
-            //                    << name << "P4, parentP4));\n";
-            //    locSourceStream << "    "
-            //                       "dFlatTreeInterface->Fill_Fundamental<Double_t>("
-            //                       "\"phi_Helicity_"
-            //                    << name << "\", dAnalysisUtilities.Phi_Helicity(loc"
-            //                    << name << "P4, parentP4));\n";
-            //  }
-            //}
 
             locSourceStream << "    // == End extra fills ==\n";
         }
