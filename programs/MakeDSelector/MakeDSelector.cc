@@ -626,7 +626,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
             };
             comb(0, 0);
         }
-        string uv = "PiPlus_PiMinus1_Photon1_Photon2 \\\\ Must be user defined!!!";
+        string uv = "PiPlus_PiMinus1_Photon1_Photon2"; // TODO: currently must be user defined
         locSourceStream << "    "
                            "dFlatTreeInterface->Create_Branch_Fundamental<"
                            "Double_t>(\"costh_GJ_"
@@ -1291,12 +1291,11 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
         }
         locSourceStream << ";" << endl;
         locSourceStream << endl;
-        locSourceStream
-            << "TLorentzVector = particleXP4 = CM_Boost * (locPiPlusP4 + loc PiMinus1P4 + "
-               "locPhoton1P4 + locPhoton1P4); \\\\ For now must be user defined!!!"
-            << endl;
+        locSourceStream << "TLorentzVector CM_Boost(-CM_P4.BoostVector());" << endl
+                        << "TLorentzVector = particleXP4 = CM_Boost * (locPiPlusP4 + locPiMinus1P4 "
+                           "+ locPhoton1P4 + locPhoton1P4); \\\\ For now must be user defined!!!"
+                        << endl;
         locSourceStream << "TLorentzVector CM_P4 = locBeamP4 + dTargetP4;" << endl
-                        << "TLorentzVector CM_Boost(-CM_P4.BoostVector());" << endl
                         << "TLorentzVector beamCM = CM_Boost * locBeam;" << endl
                         << "TLorentzVector targetCM = CM_Boost * dTargetP4;" << endl;
 
@@ -1769,8 +1768,8 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                             << "\", phi_GJ_" << uv << ";\n";
 
             // costh_H_
-            locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_H_"
-                            << uv << "\", costh_H_" << uv << ";\n";
+            locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_H_" << uv
+                            << "\", costh_H_" << uv << ";\n";
 
             // phi_H
             locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_H_" << uv
