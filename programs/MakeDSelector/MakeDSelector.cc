@@ -524,9 +524,9 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                 locSourceStream << "    "
                                    "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"mass_"
                                 << name << "\");\n";
-                locSourceStream << "    "
-                                   "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"mass_"
-                                << name << "_measured\");\n";
+                // locSourceStream << "    "
+                //                    "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"mass_"
+                //                 << name << "_measured\");\n";
                 csvOut << name << endl;
             }
         }
@@ -595,27 +595,27 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                                        "dFlatTreeInterface->Create_Branch_Fundamental<"
                                        "Double_t>(\"mass_"
                                     << combo
-                                    << "\");\n"
-                                       "    "
-                                       "dFlatTreeInterface->Create_Branch_Fundamental<"
-                                       "Double_t>(\"mass_"
-                                    << combo << "_measured\");\n";
+                                    << "\");\n";
+                                    //    "    "
+                                    //    "dFlatTreeInterface->Create_Branch_Fundamental<"
+                                    //    "Double_t>(\"mass_"
+                                    // << combo << "_measured\");\n";
                     locSourceStream << "    "
                                        "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
                                        "(\"costh_lab_"
                                     << combo << "\");\n";
-                    locSourceStream << "    "
-                                       "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
-                                       "(\"costh_lab_"
-                                    << combo << "_measured\");\n";
+                    // locSourceStream << "    "
+                    //                    "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
+                    //                    "(\"costh_lab_"
+                    //                 << combo << "_measured\");\n";
                     locSourceStream << "    "
                                        "dFlatTreeInterface->Create_Branch_Fundamental<"
                                        "Double_t>(\"phi_lab_"
                                     << combo << "\");\n";
-                    locSourceStream << "    "
-                                       "dFlatTreeInterface->Create_Branch_Fundamental<"
-                                       "Double_t>(\"phi_lab_"
-                                    << combo << "_measured\");\n";
+                    // locSourceStream << "    "
+                    //                    "dFlatTreeInterface->Create_Branch_Fundamental<"
+                    //                    "Double_t>(\"phi_lab_"
+                    //                 << combo << "_measured\");\n";
                     csvOut << combo << endl;
                     return;
                 }
@@ -1586,8 +1586,8 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                 }
                 locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
                                 << name << "\", loc" << name << "P4.M());\n";
-                locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
-                                << name << "_measured\", loc" << name << "P4_Measured.M());\n";
+                // locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
+                //                 << name << "_measured\", loc" << name << "P4_Measured.M());\n";
             }
         }
         // combinations
@@ -1666,18 +1666,18 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                     }
                     locSourceStream << ").M());\n";
 
-                    // measured mass
-                    locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
-                                    << combo << "_measured\", (";
-                    for (unsigned long int i = 0; i < r; ++i)
-                    {
-                        if (i)
-                        {
-                            locSourceStream << " + ";
-                        }
-                        locSourceStream << "loc" << names[idx[i]] << "P4_Measured";
-                    }
-                    locSourceStream << ").M());\n";
+                    // // measured mass
+                    // locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
+                    //                 << combo << "_measured\", (";
+                    // for (unsigned long int i = 0; i < r; ++i)
+                    // {
+                    //     if (i)
+                    //     {
+                    //         locSourceStream << " + ";
+                    //     }
+                    //     locSourceStream << "loc" << names[idx[i]] << "P4_Measured";
+                    // }
+                    // locSourceStream << ").M());\n";
 
                     // costh_lab
                     locSourceStream
@@ -1694,18 +1694,18 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                     locSourceStream << ").Vect().CosTheta());\n";
 
                     // measured costh_lab
-                    locSourceStream
-                        << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_lab_"
-                        << combo << "_measured\", (";
-                    for (unsigned long int i = 0; i < r; ++i)
-                    {
-                        if (i)
-                        {
-                            locSourceStream << " + ";
-                        }
-                        locSourceStream << "loc" << names[idx[i]] << "P4_Measured";
-                    }
-                    locSourceStream << ").Vect().CosTheta());\n";
+                    // locSourceStream
+                    //     << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_lab_"
+                    //     << combo << "_measured\", (";
+                    // for (unsigned long int i = 0; i < r; ++i)
+                    // {
+                    //     if (i)
+                    //     {
+                    //         locSourceStream << " + ";
+                    //     }
+                    //     locSourceStream << "loc" << names[idx[i]] << "P4_Measured";
+                    // }
+                    // locSourceStream << ").Vect().CosTheta());\n";
 
                     // phi_lab
                     locSourceStream
@@ -1722,18 +1722,18 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                     locSourceStream << ").Vect().Phi());\n";
 
                     // measured phi_lab
-                    locSourceStream
-                        << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_lab_" << combo
-                        << "_measured\", (";
-                    for (unsigned long int i = 0; i < r; ++i)
-                    {
-                        if (i)
-                        {
-                            locSourceStream << " + ";
-                        }
-                        locSourceStream << "loc" << names[idx[i]] << "P4_Measured";
-                    }
-                    locSourceStream << ").Vect().Phi());\n";
+                    // locSourceStream
+                    //     << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_lab_" << combo
+                    //     << "_measured\", (";
+                    // for (unsigned long int i = 0; i < r; ++i)
+                    // {
+                    //     if (i)
+                    //     {
+                    //         locSourceStream << " + ";
+                    //     }
+                    //     locSourceStream << "loc" << names[idx[i]] << "P4_Measured";
+                    // }
+                    // locSourceStream << ").Vect().Phi());\n";
 
                     return;
                 }
@@ -2085,6 +2085,7 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
     locSourceStream << "	/******************************** EXAMPLE USER INITIALIZATION: "
                        "STAND-ALONE HISTOGRAMS *******************************/"
                     << endl;
+
     locSourceStream << endl;
     locSourceStream << "	/************************************* ADVANCED "
                        "EXAMPLE: CHOOSE "
