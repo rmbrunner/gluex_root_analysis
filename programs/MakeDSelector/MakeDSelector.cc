@@ -320,6 +320,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     locSourceStream.open(locSourceName.c_str());
 
     locSourceStream << "#include \"" << locSelectorName << ".h\"" << endl;
+    locSourceStream << "#include <TLorentzRotation.h>" << endl;
     locSourceStream << endl;
     locSourceStream << "void " << locSelectorName << "::Init(TTree *locTree)" << endl;
     locSourceStream << "{" << endl;
@@ -343,7 +344,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     locSourceStream << "	//USERS: SET OUTPUT FILE NAME //can be overriden by "
                        "user in PROOF"
                     << endl;
-    locSourceStream << "	dOutputFileName = \"\"; ";
+    locSourceStream << "	dOutputFileName = \"\"; " << endl;
     locSourceStream << "	dOutputTreeFileName = \"\"; //\"\" for none" << endl;
     locSourceStream << "	dFlatTreeFileName = \"" << locSelectorBaseName
                     << ".root\"; //output flat tree (one "
@@ -629,20 +630,16 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
         string uv = "PiPlus_PiMinus1_Photon1_Photon2"; // TODO: currently must be user defined
         locSourceStream << "    "
                            "dFlatTreeInterface->Create_Branch_Fundamental<"
-                           "Double_t>(\"costh_GJ_"
-                        << uv << "\");\n";
+                           "Double_t>(\"costh_GJ_" << uv << "\");\n";
         locSourceStream << "    "
                            "dFlatTreeInterface->Create_Branch_Fundamental<"
-                           "Double_t>(\"phi_GJ_"
-                        << uv << "\");\n";
+                           "Double_t>(\"phi_GJ_" << uv << "\");\n";
         locSourceStream << "    "
                            "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
-                           "(\"costh_H_"
-                        << uv << "\");\n";
+                           "(\"costh_H_" << uv << "\");\n";
         locSourceStream << "    "
                            "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
-                           "(\"phi_H_"
-                        << uv << "\");\n";
+                           "(\"phi_H_" << uv << "\");\n";
         // fit stats
         // locSourceStream << "    "
         //                   "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
@@ -1291,12 +1288,12 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
         }
         locSourceStream << ";" << endl;
         locSourceStream << endl;
-        locSourceStream << "TLorentzVector CM_Boost(-CM_P4.BoostVector());" << endl
-                        << "TLorentzVector = particleXP4 = CM_Boost * (locPiPlusP4 + locPiMinus1P4 "
-                           "+ locPhoton1P4 + locPhoton1P4); \\\\ For now must be user defined!!!"
-                        << endl;
         locSourceStream << "TLorentzVector CM_P4 = locBeamP4 + dTargetP4;" << endl
-                        << "TLorentzVector beamCM = CM_Boost * locBeam;" << endl
+                        << "TLorentzRotation CM_Boost(-CM_P4.BoostVector());" << endl
+                        << "TLorentzVector particleXP4 = CM_Boost * (locPiPlusP4 + locPiMinus1P4 "
+                           "+ locPhoton1P4 + locPhoton1P4); // For now must be user defined!!!"
+                        << endl;
+        locSourceStream << "TLorentzVector beamCM = CM_Boost * locBeamP4;" << endl
                         << "TLorentzVector targetCM = CM_Boost * dTargetP4;" << endl;
 
         for (auto &step : locComboInfoMap)
@@ -1309,17 +1306,17 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                     continue;
                 }
                 locSourceStream << "TLorentzVector " << name << "CM = CM_Boost *"
-                                << " loc" << name << "P4" << endl;
+                                << " loc" << name << "P4;" << endl;
             }
         }
 
         locSourceStream << endl
                         << "TLorentzVector particleXCM = CM_Boost * particleXP4;" << endl
                         << endl
-                        << "TLorentzVector restFrameXBoost(-particleXCM.BoostVector());" << endl;
+                        << "TLorentzRotation restFrameXBoost(-particleXCM.BoostVector());" << endl;
 
         locSourceStream << "TLorentzVector referenceGJ = restFrameXBoost * (PiPlusCM + PiMinus1CM "
-                           "+ Photon1CM + Photon2CM); \\\\ For now must "
+                           "+ Photon1CM + Photon2CM); // For now must "
                            "be user defined!!!"
                         << endl;
         locSourceStream << "TLorentzVector beamGJ = restFrameXBoost * beamCM;" << endl
@@ -1333,15 +1330,15 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                 {
                     continue;
                 }
-                locSourceStream << "TLorentzVector " << name << "GJ = restFrameXBoost *" << name
-                                << "CM" << endl
-                                << "TVector3" << name << "P3 = " << name << "GJ.Vect();" << endl;
+                locSourceStream << "TLorentzVector " << name << "GJ = restFrameXBoost * " << name
+                                << "CM;" << endl
+                                << "TVector3 " << name << "P3 = " << name << "GJ.Vect();" << endl;
             }
         }
 
         locSourceStream
             << "TVector3 z_GJ = (beamGJ.Vect()).Unit();" << endl
-            << "TVector3 y_GJ = ((beamCM.Vect()).Cross(-protonCM.Vect())).Unit();" << endl
+            << "TVector3 y_GJ = ((beamCM.Vect()).Cross(-ProtonCM.Vect())).Unit();" << endl
             << "TVector3 x_GJ = ((y_GJ).Cross(z_GJ)).Unit();" << endl
             << "double costh_GJ_PiPlus_PiMinus1_Photon1_Photon2 = (referenceGJ.Vect()).Dot(z_GJ) / "
                "(referenceGJ.Vect()).Mag();"
@@ -1349,13 +1346,13 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
             << "double phi_GJ_PiPlus_PiMinus1_Photon1_Photon2 = "
                "TMath::ATan2((referenceGJ.Vect()).Dot(y_GJ), (referenceGJ.Vect()).Dot(x_GJ));"
             << endl
-            << "TVector3 z_H = particleXCM.Vect.Unit();" << endl
+            << "TVector3 z_H = particleXCM.Vect().Unit();" << endl
             << "TVector3 y_H = y_GJ;" << endl
             << "TVector3 x_H = y_H.Cross(z_H).Unit();" << endl
-            << "TVector3 costh_H_PiPlus_PiMinus1_Photon1_Photon2 = referenceGJ.Vect().Dot(z_H) / "
+            << "double costh_H_PiPlus_PiMinus1_Photon1_Photon2 = referenceGJ.Vect().Dot(z_H) / "
                "referenceGJ.Vect().Mag();"
             << endl
-            << "TVector3 phi_H_PiPlus_PiMinus1_Photon1_Photon2 = "
+            << "double phi_H_PiPlus_PiMinus1_Photon1_Photon2 = "
                "TMath::ATan2(referenceGJ.Vect().Dot(y_H), referenceGJ.Vect().Dot(x_H));"
             << endl;
 
@@ -1761,19 +1758,19 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
 
             // costh_GJ_
             locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_GJ_"
-                            << uv << "\", costh_GJ_" << uv << ";\n";
+                            << uv << "\", costh_GJ_" << uv << ");\n";
 
             // phi_GJ
             locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_GJ_" << uv
-                            << "\", phi_GJ_" << uv << ";\n";
+                            << "\", phi_GJ_" << uv << ");\n";
 
             // costh_H_
             locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_H_" << uv
-                            << "\", costh_H_" << uv << ";\n";
+                            << "\", costh_H_" << uv << ");\n";
 
             // phi_H
             locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_H_" << uv
-                            << "\", phi_H_" << uv << ";\n";
+                            << "\", phi_H_" << uv << ");\n";
             // fit stats
             // locSourceStream
             //    << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"chisq\", "
