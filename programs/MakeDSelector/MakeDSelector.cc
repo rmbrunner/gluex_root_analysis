@@ -2,13 +2,14 @@
 #include <iostream>
 #include <map>
 #include <ostream>
+#include <set>
 #include <string>
 
 #include <TFile.h>
 #include <TTree.h>
 
-#include "../../libraries/DSelector/DTreeInterface.h"
-#include "../../libraries/DSelector/particleType.h"
+#include "DTreeInterface.h"
+#include "particleType.h"
 
 // function declarations
 void Print_Usage(void);
@@ -26,6 +27,12 @@ inline bool IsRelevant(const string &name)
     return (name != "ComboBeam" && name != "Target" && name.find("Decaying") == string::npos);
 }
 
+static std::size_t count_if_contains(const std::vector<std::string> &vec, const std::string &sub)
+{
+    return std::count_if(vec.begin(), vec.end(),
+                         [&](const std::string &s) { return s.find(sub) != std::string::npos; });
+}
+
 static std::vector<std::string> tokenize(const std::string &s, char sep = '_')
 {
     std::vector<std::string> tokens;
@@ -40,6 +47,32 @@ static std::vector<std::string> tokenize(const std::string &s, char sep = '_')
     }
     return tokens;
 }
+
+static std::string NormalizeName(const std::string &name)
+{
+    auto remapSuffix = [&](const std::string &suffix,
+                           const std::string &replacement) -> std::string {
+        if (name.size() >= suffix.size() &&
+            name.compare(name.size() - suffix.size(), suffix.size(), suffix) == 0)
+        {
+            return name.substr(0, name.size() - suffix.size()) + replacement;
+        }
+        return {};
+    };
+    string s = remapSuffix("Minus", "-");
+    if (!s.empty())
+    {
+        return s;
+    }
+    s = remapSuffix("Plus", "+");
+    if (!s.empty())
+    {
+        return s;
+    }
+
+    return name;
+}
+
 int main(int argc, char *argv[])
 {
     bool extraDefaults = false;
@@ -1346,7 +1379,8 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
 
         locSourceStream
             << "TVector3 z_GJ = (beamGJ.Vect()).Unit();" << endl
-            << "TVector3 y_GJ = ((beamCM.Vect()).Cross(-ProtonCM.Vect())).Unit();" << endl
+            << "TVector3 y_GJ = ((beamCM.Vect()).Cross(-(ProtonCM+PiMinus2).Vect())).Unit();"
+            << endl
             << "TVector3 x_GJ = ((y_GJ).Cross(z_GJ)).Unit();" << endl
             << "double costh_GJ_PiPlus_PiMinus1_Photon1_Photon2 = (referenceGJ.Vect()).Dot(z_GJ) / "
                "(referenceGJ.Vect()).Mag();"
@@ -2012,12 +2046,14 @@ void Print_HeaderFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
 void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeInterface,
                             bool extraDefaults)
 {
+
     string locSelectorName = string("DSelector_") + locSelectorBaseName;
     string locSourceName = locSelectorName + string(".C");
     ofstream locSourceStream;
     locSourceStream.open(locSourceName.c_str());
 
     locSourceStream << "#include \"" << locSelectorName << ".h\"" << endl;
+    locSourceStream << "#include <TLorentzRotation.h>" << endl;
     locSourceStream << endl;
     locSourceStream << "void " << locSelectorName << "::Init(TTree *locTree)" << endl;
     locSourceStream << "{" << endl;
@@ -2110,13 +2146,13 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
         {
 
             locSourceStream << "    dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"mass_"
-                            << name << "\", loc" << name << "P4.M());\n";
+                            << name << "\");\n";
             locSourceStream
                 << "    dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"costh_lab_"
-                << name << "\", loc" << name << "P4.Vect().CosTheta();\n";
+                << name << "\");\n";
             locSourceStream
                 << "    dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"phi_lab_" << name
-                << "\", loc" << name << "P4.Vect().Phi();\n";
+                << "\");\n";
         }
 
         string uv = "PiPlus_PiMinus1_Photon1_Photon2"; // TODO: currently must be user defined
@@ -2138,6 +2174,7 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                         << uv << "\");\n";
         // individual masses
         locSourceStream << "    // == End extra defaults ==\n";
+        csvIn.close();
     }
     locSourceStream << endl;
     locSourceStream << "	/************************************* ADVANCED "
@@ -2250,17 +2287,31 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                 sel.push_back(line);
             }
         }
+        set<string> primitives;
+        for (auto &name : sel)
+        {
+            if (name.rfind("_") == string::npos)
+            {
+                string primitive = name.substr(0, name.find_last_not_of("0123456789") + 1);
+                primitives.insert(primitive);
+            }
+        }
+
         locSourceStream << "    TLorentzVector locZeroVec(0,0,0,0);";
         for (auto &name : sel)
         {
-            if (name.rfind("_") == 0)
+            if (name.rfind("_") == string::npos)
             {
                 locSourceStream << "TLorentzVector loc" << name << "P4 = locZeroVec;" << endl;
-                locSourceStream << "UInt_t" << name << "_number = 0;" << endl;
             }
         }
+        for (auto &name : primitives)
+        {
+            locSourceStream << "    UInt_t " << name << "_number = 0;" << endl;
+        }
         locSourceStream << "TLorentzVector dTargetP4(0,0,0,0.938);" << endl
-                        << "TLorentzVector locBeamP4 dThrownBeam->Get_P4();" << endl;
+                        << "TLorentzVector locBeamP4 = dThrownBeam->Get_P4();" << endl;
+        csvIn.close();
     }
     locSourceStream << endl;
     locSourceStream << "	//Loop over throwns" << endl;
@@ -2283,9 +2334,135 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                     << endl;
     if (extraDefaults)
     {
-        // FINISH CODE
+        ifstream csvIn("branches.csv");
+        vector<string> sel;
+        std::string line;
+        // read in and sanitize combo names
+        while (std::getline(csvIn, line))
+        {
+            if (!line.empty() && line.rfind("_") == string::npos)
+            {
+                line.erase(line.find_last_not_of(" \n\r\t") + 1);
+                sel.push_back(line);
+            }
+        }
+        set<string> primitives;
+        for (auto &name : sel)
+        {
+            string primitive = name.substr(0, name.find_last_not_of("0123456789") + 1);
+            primitives.insert(primitive);
+        }
+        for (auto &primitive : primitives)
+        {
+            locSourceStream << "    if(locPID == " << ParticleEnum(NormalizeName(primitive).c_str())
+                            << ")" << endl
+                            << "    {" << endl;
+            if (count_if_contains(sel, primitive) == 1)
+            {
+                locSourceStream << "        " << primitive << "_number++;" << endl
+                                << "        loc" << primitive << "P4 = locThrownP4;" << endl;
+            }
+            else
+            {
+                locSourceStream << "        " << primitive << "_number++;" << endl;
+
+                for (UInt_t i = 0; i < count_if_contains(sel, primitive); i++)
+                {
+                    locSourceStream << "            "
+                                    << "if (" << primitive << "_number == " << i + 1 << ")" << endl
+                                    << "            {"
+                                    << "                loc" << primitive << (i + 1)
+                                    << "P4 = locThrownP4;"
+                                    << "            }" << endl
+                                    << endl;
+                }
+            }
+            locSourceStream << "    }" << endl;
+        }
     }
     locSourceStream << "	}" << endl;
+
+    if (extraDefaults)
+    {
+
+        ifstream csvIn("branches.csv");
+        vector<string> sel;
+        std::string line;
+        // read in and sanitize combo names
+        while (std::getline(csvIn, line))
+        {
+            if (!line.empty())
+            {
+                line.erase(line.find_last_not_of(" \n\r\t") + 1);
+                sel.push_back(line);
+            }
+        }
+        locSourceStream
+            << "    bool pimIsNull = " << endl
+            << "        ((locPiMinus1P4 == locZeroVec) || (locPiMinus2P4 == locZeroVec));" << endl
+            << "    if (!pimIsNull) {" << endl;
+
+        locSourceStream << "TLorentzVector CM_P4 = locBeamP4 + dTargetP4;" << endl
+                        << "TLorentzRotation CM_Boost(-CM_P4.BoostVector());" << endl
+                        << "TLorentzVector particleXP4 = CM_Boost * (locPiPlusP4 + locPiMinus1P4 "
+                           "+ locPhoton1P4 + locPhoton1P4); // For now must be user defined!!!"
+                        << endl;
+        locSourceStream << "TLorentzVector beamCM = CM_Boost * locBeamP4;" << endl
+                        << "TLorentzVector targetCM = CM_Boost * dTargetP4;" << endl;
+
+        for (auto &name : sel)
+        {
+            if (name.rfind("_") == string::npos)
+            {
+                locSourceStream << "TLorentzVector " << name << "CM = CM_Boost *"
+                                << " loc" << name << "P4;" << endl;
+            }
+        }
+
+        locSourceStream << endl
+                        << "TLorentzVector particleXCM = CM_Boost * particleXP4;" << endl
+                        << endl
+                        << "TLorentzRotation restFrameXBoost(-particleXCM.BoostVector());" << endl;
+
+        locSourceStream << "TLorentzVector referenceGJ = restFrameXBoost * (PiPlusCM + PiMinus1CM "
+                           "+ Photon1CM + Photon2CM); // For now must "
+                           "be user defined!!!"
+                        << endl;
+        locSourceStream << "TLorentzVector beamGJ = restFrameXBoost * beamCM;" << endl
+                        << "TLorentzVector targetGJ = restFrameXBoost * targetCM;" << endl;
+        for (auto &name : sel)
+        {
+            if (name.rfind("_") == string::npos)
+            {
+                locSourceStream << "TLorentzVector " << name << "GJ = restFrameXBoost * " << name
+                                << "CM;" << endl
+                                << "TVector3 " << name << "P3 = " << name << "GJ.Vect();" << endl;
+            }
+        }
+        locSourceStream
+            << "TVector3 z_GJ = (beamGJ.Vect()).Unit();" << endl
+            << "TVector3 y_GJ = ((beamCM.Vect()).Cross(-(ProtonCM+PiMinus2CM).Vect())).Unit();"
+            << endl
+            << "TVector3 x_GJ = ((y_GJ).Cross(z_GJ)).Unit();" << endl
+            << "double costh_GJ_PiPlus_PiMinus1_Photon1_Photon2 = "
+               "(referenceGJ.Vect()).Dot(z_GJ) / "
+               "(referenceGJ.Vect()).Mag();"
+            << endl
+            << "double phi_GJ_PiPlus_PiMinus1_Photon1_Photon2 = "
+               "TMath::ATan2((referenceGJ.Vect()).Dot(y_GJ), (referenceGJ.Vect()).Dot(x_GJ));"
+            << endl
+            << "TVector3 z_H = particleXCM.Vect().Unit();" << endl
+            << "TVector3 y_H = y_GJ;" << endl
+            << "TVector3 x_H = y_H.Cross(z_H).Unit();" << endl
+            << "double costh_H_PiPlus_PiMinus1_Photon1_Photon2 = referenceGJ.Vect().Dot(z_H) / "
+               "referenceGJ.Vect().Mag();"
+            << endl
+            << "double phi_H_PiPlus_PiMinus1_Photon1_Photon2 = "
+               "TMath::ATan2(referenceGJ.Vect().Dot(y_H), referenceGJ.Vect().Dot(x_H));"
+            << endl;
+        csvIn.close();
+    }
+
     locSourceStream << endl;
     locSourceStream << "	//OR Manually:" << endl;
     locSourceStream << "	//BEWARE: Do not expect the particles to be at the "
@@ -2353,7 +2530,7 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
         }
         for (auto &name : sel)
         {
-            if (name.rfind("_") == 0)
+            if (name.rfind("_") == string::npos)
             {
                 locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
                                 << name << "\", loc" << name << "P4.M());\n";
@@ -2363,66 +2540,46 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
 
                 vector<string> particles = tokenize(name);
 
-                // now generate all r‐body combinations
-                for (size_t r = 2; r <= particles.size(); ++r)
+                // kinematic‐fit mass
+                locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
+                                << name << "\", (";
+                for (unsigned long int i = 0; i < particles.size(); i++)
                 {
-                    vector<int> idx(r);
-                    function<void(int, unsigned long)> comb = [&](int start,
-                                                                  unsigned long int depth) {
-                        if (depth == r)
-                        {
-                            // kinematic‐fit mass
-                            locSourceStream
-                                << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"mass_"
-                                << name << "\", (";
-                            for (unsigned long int i = 0; i < r; ++i)
-                            {
-                                if (i)
-                                {
-                                    locSourceStream << " + ";
-                                }
-                                locSourceStream << "loc" << particles[idx[i]] << "P4";
-                            }
-                            locSourceStream << ").M());\n";
-
-                            // costh_lab
-                            locSourceStream
-                                << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_lab_"
-                                << name << "\", (";
-                            for (unsigned long int i = 0; i < r; ++i)
-                            {
-                                if (i)
-                                {
-                                    locSourceStream << " + ";
-                                }
-                                locSourceStream << "loc" << particles[idx[i]] << "P4";
-                            }
-                            locSourceStream << ").Vect().CosTheta());\n";
-
-                            // phi_lab
-                            locSourceStream
-                                << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_lab_"
-                                << name << "\", (";
-                            for (unsigned long int i = 0; i < r; ++i)
-                            {
-                                if (i)
-                                {
-                                    locSourceStream << " + ";
-                                }
-                                locSourceStream << "loc" << particles[idx[i]] << "P4";
-                            }
-                            locSourceStream << ").Vect().Phi());\n";
-
-                            return;
-                        }
-                        for (int i = start; i < int(particles.size()); ++i)
-                        {
-                            idx[depth] = i;
-                            comb(i + 1, depth + 1);
-                        }
-                    };
-                    comb(0, 0);
+                    if (i)
+                    {
+                        locSourceStream << " + ";
+                    }
+                    locSourceStream << "loc" << particles[i] << "P4";
                 }
+                locSourceStream << ").M());\n";
+
+                // costh_lab
+                locSourceStream << "    "
+                                   "dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_lab_"
+                                << name << "\", (";
+                for (unsigned long int i = 0; i < particles.size(); i++)
+                {
+                    if (i)
+                    {
+                        locSourceStream << " + ";
+                    }
+                    locSourceStream << "loc" << particles[i] << "P4";
+                }
+                locSourceStream << ").Vect().CosTheta());\n";
+
+                // phi_lab
+                locSourceStream << "    "
+                                   "dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_lab_"
+                                << name << "\", (";
+                for (unsigned long int i = 0; i < particles.size(); i++)
+                {
+                    if (i)
+                    {
+                        locSourceStream << " + ";
+                    }
+                    locSourceStream << "loc" << particles[i] << "P4";
+                }
+                locSourceStream << ").Vect().Phi());\n";
             }
         }
         string uv = "PiPlus_PiMinus1_Photon1_Photon2"; // TODO: currently must be user defined
@@ -2441,6 +2598,7 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
         // phi_H
         locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_H_" << uv
                         << "\", phi_H_" << uv << ");\n";
+        csvIn.close();
     }
     locSourceStream << endl;
     locSourceStream << "/*" << endl;
@@ -2461,7 +2619,7 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                     << endl;
     locSourceStream << "		Fill_OutputTree(\"Bin3\"); //your user-defined key" << endl;
     locSourceStream << "*/" << endl;
-    locSourceStream << endl;
+    locSourceStream << "Fill_FlatTree();" << endl << "}" << endl;
     locSourceStream << "	return kTRUE;" << endl;
     locSourceStream << "}" << endl;
     locSourceStream << endl;
