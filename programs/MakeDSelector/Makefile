@@ -22,7 +22,7 @@ install_it:
 
 ./bin/MakeDSelector: MakeDSelector.cc 
 	@rm -f ./bin/MakeDSelector 
-	g++ $(FLAGS) MakeDSelector.cc -o ./bin/MakeDSelector $(LIBS) 
+	g++ $(FLAGS) MakeDSelector.cc PrintSource.cc PrintSourceMC.cc PrintHeader.cc PrintHeaderMC.cc -o ./bin/MakeDSelector $(LIBS) 
 	@chmod 755 ./bin/MakeDSelector
 
 clean: 
