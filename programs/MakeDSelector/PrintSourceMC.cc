@@ -128,12 +128,13 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                        "STAND-ALONE HISTOGRAMS *******************************/"
                     << endl;
 
+    string finalState;
     if (extraDefaults)
     {
         ifstream csvIn("branches.csv");
         locSourceStream << "    // == Extra default branches ==\n";
         vector<TString> sel;
-        std::string line;
+        string line;
         // read in and sanitize combo names
         while (std::getline(csvIn, line))
         {
@@ -141,6 +142,7 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
             {
                 line.erase(line.find_last_not_of(" \n\r\t") + 1);
                 sel.push_back(line);
+                finalState = line;
             }
         }
         for (auto &name : sel)
@@ -154,25 +156,27 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
             locSourceStream
                 << "    dFlatTreeInterface->Create_Branch_Fundamental<Double_t>(\"phi_lab_" << name
                 << "\");\n";
+            if (name != finalState)
+            {
+                locSourceStream << "    "
+                                   "dFlatTreeInterface->Create_Branch_Fundamental<"
+                                   "Double_t>(\"costh_GJ_"
+                                << name << "\");\n";
+                locSourceStream << "    "
+                                   "dFlatTreeInterface->Create_Branch_Fundamental<"
+                                   "Double_t>(\"phi_GJ_"
+                                << name << "\");\n";
+                locSourceStream << "    "
+                                   "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
+                                   "(\"costh_H_"
+                                << name << "\");\n";
+                locSourceStream << "    "
+                                   "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
+                                   "(\"phi_H_"
+                                << name << "\");\n";
+            }
         }
 
-        string uv = "PiPlus_PiMinus1_Photon1_Photon2"; // TODO: currently must be user defined
-        locSourceStream << "    "
-                           "dFlatTreeInterface->Create_Branch_Fundamental<"
-                           "Double_t>(\"costh_GJ_"
-                        << uv << "\");\n";
-        locSourceStream << "    "
-                           "dFlatTreeInterface->Create_Branch_Fundamental<"
-                           "Double_t>(\"phi_GJ_"
-                        << uv << "\");\n";
-        locSourceStream << "    "
-                           "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
-                           "(\"costh_H_"
-                        << uv << "\");\n";
-        locSourceStream << "    "
-                           "dFlatTreeInterface->Create_Branch_Fundamental<Double_t>"
-                           "(\"phi_H_"
-                        << uv << "\");\n";
         // individual masses
         locSourceStream << "    // == End extra defaults ==\n";
         csvIn.close();
@@ -278,7 +282,7 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
     {
         ifstream csvIn("branches.csv");
         vector<string> sel;
-        std::string line;
+        string line;
         // read in and sanitize combo names
         while (std::getline(csvIn, line))
         {
@@ -425,12 +429,24 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                         << endl
                         << "TLorentzRotation restFrameXBoost(-particleXCM.BoostVector());" << endl;
 
-        locSourceStream << "TLorentzVector referenceGJ = restFrameXBoost * (PiPlusCM + PiMinus1CM "
-                           "+ Photon1CM + Photon2CM); // For now must "
-                           "be user defined!!!"
-                        << endl;
-        locSourceStream << "TLorentzVector beamGJ = restFrameXBoost * beamCM;" << endl
+        for (auto &branch : sel)
+        {
+            locSourceStream << "TLorentzVector referenceGJ_" << branch << " = restFrameXBoost * (";
+            vector<string> particles = tokenize(branch);
+            for (UInt_t i = 0; i < particles.size(); i++)
+            {
+                if (i)
+                {
+                    locSourceStream << " + ";
+                }
+                locSourceStream << particles[i] << "CM";
+            }
+            locSourceStream << ");" << endl;
+        }
+        locSourceStream << endl
+                        << "TLorentzVector beamGJ = restFrameXBoost * beamCM;" << endl
                         << "TLorentzVector targetGJ = restFrameXBoost * targetCM;" << endl;
+
         for (auto &name : sel)
         {
             if (name.rfind("_") == string::npos)
@@ -440,27 +456,60 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                                 << "TVector3 " << name << "P3 = " << name << "GJ.Vect();" << endl;
             }
         }
-        locSourceStream
-            << "TVector3 z_GJ = (beamGJ.Vect()).Unit();" << endl
-            << "TVector3 y_GJ = ((beamCM.Vect()).Cross(-(ProtonCM+PiMinus2CM).Vect())).Unit();"
-            << endl
-            << "TVector3 x_GJ = ((y_GJ).Cross(z_GJ)).Unit();" << endl
-            << "double costh_GJ_PiPlus_PiMinus1_Photon1_Photon2 = "
-               "(referenceGJ.Vect()).Dot(z_GJ) / "
-               "(referenceGJ.Vect()).Mag();"
-            << endl
-            << "double phi_GJ_PiPlus_PiMinus1_Photon1_Photon2 = "
-               "TMath::ATan2((referenceGJ.Vect()).Dot(y_GJ), (referenceGJ.Vect()).Dot(x_GJ));"
-            << endl
-            << "TVector3 z_H = particleXCM.Vect().Unit();" << endl
-            << "TVector3 y_H = y_GJ;" << endl
-            << "TVector3 x_H = y_H.Cross(z_H).Unit();" << endl
-            << "double costh_H_PiPlus_PiMinus1_Photon1_Photon2 = referenceGJ.Vect().Dot(z_H) / "
-               "referenceGJ.Vect().Mag();"
-            << endl
-            << "double phi_H_PiPlus_PiMinus1_Photon1_Photon2 = "
-               "TMath::ATan2(referenceGJ.Vect().Dot(y_H), referenceGJ.Vect().Dot(x_H));"
-            << endl;
+        for (auto &branch : sel)
+        {
+            string uv = branch;
+            string lv = "";
+            vector<string> fsparticles = tokenize(finalState);
+            UInt_t counter = 0;
+            for (auto &fsp : fsparticles)
+            {
+
+                if (uv.rfind(fsp) == string::npos)
+                {
+                    if (counter != 0)
+                    {
+                        lv.append(" + ");
+                    }
+                    counter++;
+                    lv.append(fsp + "CM");
+                }
+            }
+            if (lv != "")
+            {
+                locSourceStream << "TVector3 z_GJ_" << uv << " = (beamGJ.Vect()).Unit();" << endl
+                                << "TVector3 y_GJ_" << uv << " = ((beamCM.Vect()).Cross(-(" << lv
+                                << ").Vect())).Unit();" << endl
+                                << "TVector3 x_GJ_" << uv << " = ((y_GJ_" << uv << ").Cross(z_GJ_"
+                                << uv << ")).Unit();" << endl
+                                << "double costh_GJ_" << uv
+                                << " = "
+                                   "(referenceGJ_"
+                                << uv << ".Vect()).Dot(z_GJ_" << uv
+                                << ") / "
+                                   "(referenceGJ_"
+                                << uv << ".Vect()).Mag();" << endl
+                                << "double phi_GJ_" << uv
+                                << " = "
+                                   "TMath::ATan2((referenceGJ_"
+                                << uv << ".Vect()).Dot(y_GJ_" << uv << "), (referenceGJ_" << uv
+                                << ".Vect()).Dot(x_GJ_" << uv << "));" << endl
+                                << "TVector3 z_H_" << uv << " = particleXCM.Vect().Unit();" << endl
+                                << "TVector3 y_H_" << uv << " = y_GJ_" << uv << ";" << endl
+                                << "TVector3 x_H_" << uv << " = y_H_" << uv << ".Cross(z_H_" << uv
+                                << ").Unit();" << endl
+                                << "double costh_H_" << uv << " = referenceGJ_" << uv
+                                << ".Vect().Dot(z_H_" << uv
+                                << ") / "
+                                   "referenceGJ_"
+                                << uv << ".Vect().Mag();" << endl
+                                << "double phi_H_" << uv
+                                << " = "
+                                   "TMath::ATan2(referenceGJ_"
+                                << uv << ".Vect().Dot(y_H_" << uv << "), referenceGJ_" << uv
+                                << ".Vect().Dot(x_H_" << uv << "));" << endl;
+            }
+        }
         csvIn.close();
     }
 
@@ -581,24 +630,30 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                     locSourceStream << "loc" << particles[i] << "P4";
                 }
                 locSourceStream << ").Vect().Phi());\n";
+
+                if (name != finalState)
+                {
+                    // costh_GJ_
+                    locSourceStream
+                        << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_GJ_" << name
+                        << "\", costh_GJ_" << name << ");\n";
+
+                    // phi_GJ
+                    locSourceStream
+                        << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_GJ_" << name
+                        << "\", phi_GJ_" << name << ");\n";
+
+                    // costh_H_
+                    locSourceStream
+                        << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_H_" << name
+                        << "\", costh_H_" << name << ");\n";
+
+                    // phi_H
+                    locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_H_"
+                                    << name << "\", phi_H_" << name << ");\n";
+                }
             }
         }
-        string uv = "PiPlus_PiMinus1_Photon1_Photon2"; // TODO: currently must be user defined
-        // costh_GJ_
-        locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_GJ_" << uv
-                        << "\", costh_GJ_" << uv << ");\n";
-
-        // phi_GJ
-        locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_GJ_" << uv
-                        << "\", phi_GJ_" << uv << ");\n";
-
-        // costh_H_
-        locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"costh_H_" << uv
-                        << "\", costh_H_" << uv << ");\n";
-
-        // phi_H
-        locSourceStream << "    dFlatTreeInterface->Fill_Fundamental<Double_t>(\"phi_H_" << uv
-                        << "\", phi_H_" << uv << ");\n";
         csvIn.close();
     }
     locSourceStream << endl;
