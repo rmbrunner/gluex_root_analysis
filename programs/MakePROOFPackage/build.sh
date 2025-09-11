@@ -19,6 +19,7 @@ cp SETUP.C ${DIRNAME}/PROOF-INF/
 
 #LIBRARIES
 cp ${ROOT_ANALYSIS_HOME}/${BMS_OSNAME}/lib/libDSelector.so ${DIRNAME}/
+cp ${ROOT_ANALYSIS_HOME}/${BMS_OSNAME}/lib/DSelectorDict_rdict.pcm ${DIRNAME}/
 
 #HEADERS
 cp -r ${ROOT_ANALYSIS_HOME}/${BMS_OSNAME}/include/DSelector ${DIRNAME}/
