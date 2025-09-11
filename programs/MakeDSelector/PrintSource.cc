@@ -1031,12 +1031,31 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     if (extraDefaults)
     {
         locSourceStream << "TLorentzVector CM_P4 = locBeamP4 + dTargetP4;" << endl
-                        << "TLorentzRotation CM_Boost(-CM_P4.BoostVector());" << endl
-                        << "TLorentzVector particleXP4 = CM_Boost * (locPiPlusP4 + locPiMinus1P4 "
-                           "+ locPhoton1P4 + locPhoton1P4); // For now must be user defined!!!"
-                        << endl;
+                        << "TLorentzRotation CM_Boost(-CM_P4.BoostVector());" << endl;
         locSourceStream << "TLorentzVector beamCM = CM_Boost * locBeamP4;" << endl
                         << "TLorentzVector targetCM = CM_Boost * dTargetP4;" << endl;
+        for (auto &branch : branches)
+        {
+            vector<string> particles = tokenize(branch);
+            for (UInt_t i = 0; i < particles.size(); i++)
+            {
+                locSourceStream << endl
+                                << "TLorentzVector particleXCM = CM_Boost * particleXP4_" << branch
+                                << ";" << endl;
+                locSourceStream << endl
+                                << "TLorentzRotation restFrameXBoost_" << branch << "(-particleXCM_"
+                                << branch << ".BoostVector());" << endl;
+                locSourceStream << "TLorentzVector particleXP4_" << branch << " = restFrameXBoost_"
+                                << branch << " * (";
+                locSourceStream << "TLorentzVector particleXP4 = CM_Boost * (";
+                if (i)
+                {
+                    locSourceStream << " + ";
+                }
+                locSourceStream << "loc" << particles[i] << "P4";
+            }
+            locSourceStream << ");" << endl;
+        }
 
         for (auto &step : locComboInfoMap)
         {
@@ -1052,14 +1071,10 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
             }
         }
 
-        locSourceStream << endl
-                        << "TLorentzVector particleXCM = CM_Boost * particleXP4;" << endl
-                        << endl
-                        << "TLorentzRotation restFrameXBoost(-particleXCM.BoostVector());" << endl;
-
         for (auto &branch : branches)
         {
-            locSourceStream << "TLorentzVector referenceGJ_" << branch << " = restFrameXBoost * (";
+            locSourceStream << "TLorentzVector referenceGJ_" << branch << " = restFrameXBoost_"
+                            << branch << " * (";
             vector<string> particles = tokenize(branch);
             for (UInt_t i = 0; i < particles.size(); i++)
             {
@@ -1070,10 +1085,12 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
                 locSourceStream << particles[i] << "CM";
             }
             locSourceStream << ");" << endl;
+            locSourceStream << endl
+                            << "TLorentzVector beamGJ_" << branch << " = restFrameXBoost_" << branch
+                            << " * beamCM;" << endl
+                            << "TLorentzVector targetGJ_" << branch
+                            << " = restFrameXBoost * targetCM;" << endl;
         }
-        locSourceStream << endl
-                        << "TLorentzVector beamGJ = restFrameXBoost * beamCM;" << endl
-                        << "TLorentzVector targetGJ = restFrameXBoost * targetCM;" << endl;
 
         for (auto &step : locComboInfoMap)
         {
