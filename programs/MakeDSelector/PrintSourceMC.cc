@@ -53,78 +53,78 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
     ofstream locSourceStream;
     locSourceStream.open(locSourceName.c_str());
 
-    locSourceStream << "#include \"" << locSelectorName << ".h\"" << endl;
-    locSourceStream << "#include <TLorentzRotation.h>" << endl;
-    locSourceStream << endl;
-    locSourceStream << "void " << locSelectorName << "::Init(TTree *locTree)" << endl;
-    locSourceStream << "{" << endl;
-    locSourceStream << "	// USERS: IN THIS FUNCTION, ONLY MODIFY SECTIONS WITH "
+    locSourceStream << "#include \"" << locSelectorName << ".h\"" << endl
+                    << "#include <TLorentzRotation.h>" << endl
+                    << endl
+                    << "void " << locSelectorName << "::Init(TTree *locTree)" << endl
+                    << "{" << endl
+                    << "	// USERS: IN THIS FUNCTION, ONLY MODIFY SECTIONS WITH "
                        "A \"USER\" OR "
                        "\"EXAMPLE\" LABEL. LEAVE THE REST ALONE."
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	// The Init() function is called when the selector "
+                    << endl
+                    << endl
+                    << "	// The Init() function is called when the selector "
                        "needs to initialize "
                        "a new tree or chain."
-                    << endl;
-    locSourceStream << "	// Typically here the branch addresses and branch "
+                    << endl
+                    << "	// Typically here the branch addresses and branch "
                        "pointers of the "
                        "tree will be set."
-                    << endl;
-    locSourceStream << "	// Init() will be called many times when running on "
+                    << endl
+                    << "	// Init() will be called many times when running on "
                        "PROOF (once per "
                        "file to be processed)."
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//USERS: SET OUTPUT FILE NAME //can be overriden by "
+                    << endl
+                    << endl
+                    << "	//USERS: SET OUTPUT FILE NAME //can be overriden by "
                        "user in PROOF"
-                    << endl;
-    locSourceStream << "	dFlatTreeFileName = \"" << locSelectorBaseName
-                    << ".root\"; //\"\" for none" << endl;
-    locSourceStream << "	//USERS: SET OUTPUT TREE FILES/NAMES //e.g. binning "
+                    << endl
+                    << "	dFlatTreeFileName = \"" << locSelectorBaseName
+                    << ".root\"; //\"\" for none" << endl
+                    << "	//USERS: SET OUTPUT TREE FILES/NAMES //e.g. binning "
                        "into separate "
                        "files for AmpTools"
-                    << endl;
-    locSourceStream << "	//dOutputTreeFileNameMap[\"Bin1\"] = "
+                    << endl
+                    << "	//dOutputTreeFileNameMap[\"Bin1\"] = "
                        "\"mcgen_bin1.root\"; //key is "
                        "user-defined, value is output file name"
-                    << endl;
-    locSourceStream << "	//dOutputTreeFileNameMap[\"Bin2\"] = "
+                    << endl
+                    << "	//dOutputTreeFileNameMap[\"Bin2\"] = "
                        "\"mcgen_bin2.root\"; //key is "
                        "user-defined, value is output file name"
-                    << endl;
-    locSourceStream << "	//dOutputTreeFileNameMap[\"Bin3\"] = "
+                    << endl
+                    << "	//dOutputTreeFileNameMap[\"Bin3\"] = "
                        "\"mcgen_bin3.root\"; //key is "
                        "user-defined, value is output file name"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//Because this function gets called for each TTree in "
+                    << endl
+                    << endl
+                    << "	//Because this function gets called for each TTree in "
                        "the TChain, we "
                        "must be careful:"
-                    << endl;
-    locSourceStream << "		//We need to re-initialize the tree interface "
+                    << endl
+                    << "		//We need to re-initialize the tree interface "
                        "& branch wrappers, "
                        "but don't want to recreate histograms"
-                    << endl;
-    locSourceStream << "	bool locInitializedPriorFlag = dInitializedFlag; "
+                    << endl
+                    << "	bool locInitializedPriorFlag = dInitializedFlag; "
                        "//save whether have "
                        "been initialized previously"
-                    << endl;
-    locSourceStream << "	DSelector::Init(locTree); //This must be called to "
+                    << endl
+                    << "	DSelector::Init(locTree); //This must be called to "
                        "initialize wrappers "
                        "for each new TTree"
-                    << endl;
-    locSourceStream << "	//gDirectory now points to the output file with name "
+                    << endl
+                    << "	//gDirectory now points to the output file with name "
                        "dOutputFileName (if any)"
-                    << endl;
-    locSourceStream << "	if(locInitializedPriorFlag)" << endl;
-    locSourceStream << "		return; //have already created histograms, "
+                    << endl
+                    << "	if(locInitializedPriorFlag)" << endl
+                    << "		return; //have already created histograms, "
                        "etc. below: exit"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	dPreviousRunNumber = 0;" << endl;
-    locSourceStream << endl;
-    locSourceStream << "	/******************************** EXAMPLE USER INITIALIZATION: "
+                    << endl
+                    << endl
+                    << "	dPreviousRunNumber = 0;" << endl
+                    << endl
+                    << "	/******************************** EXAMPLE USER INITIALIZATION: "
                        "STAND-ALONE HISTOGRAMS *******************************/"
                     << endl;
 
@@ -181,101 +181,101 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
         locSourceStream << "    // == End extra defaults ==\n";
         csvIn.close();
     }
-    locSourceStream << endl;
-    locSourceStream << "	/************************************* ADVANCED "
+    locSourceStream << endl
+                    << "	/************************************* ADVANCED "
                        "EXAMPLE: CHOOSE "
                        "BRANCHES TO READ ************************************/"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//TO SAVE PROCESSING TIME" << endl;
-    locSourceStream << "		//If you know you don't need all of the "
+                    << endl
+                    << endl
+                    << "	//TO SAVE PROCESSING TIME" << endl
+                    << "		//If you know you don't need all of the "
                        "branches/data, but just a "
                        "subset of it, you can speed things up"
-                    << endl;
-    locSourceStream << "		//By default, for each event, the data is "
+                    << endl
+                    << "		//By default, for each event, the data is "
                        "retrieved for all branches"
-                    << endl;
-    locSourceStream << "		//If you know you only need data for some "
+                    << endl
+                    << "		//If you know you only need data for some "
                        "branches, you can skip "
                        "grabbing data from the branches you don't need"
-                    << endl;
-    locSourceStream << "		//Do this by doing something similar to the "
+                    << endl
+                    << "		//Do this by doing something similar to the "
                        "commented code below"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//dTreeInterface->Clear_GetEntryBranches(); //now get none" << endl;
-    locSourceStream << "	//dTreeInterface->Register_GetEntryBranch(\"Proton__P4\"); "
+                    << endl
+                    << endl
+                    << "	//dTreeInterface->Clear_GetEntryBranches(); //now get none" << endl
+                    << "	//dTreeInterface->Register_GetEntryBranch(\"Proton__P4\"); "
                        "//manually "
                        "set the branches you want"
-                    << endl;
-    locSourceStream << "}" << endl;
-    locSourceStream << endl;
+                    << endl
+                    << "}" << endl
+                    << endl
 
-    locSourceStream << "Bool_t " << locSelectorName << "::Process(Long64_t locEntry)" << endl;
-    locSourceStream << "{" << endl;
-    locSourceStream << "	// The Process() function is called for each entry in "
+                    << "Bool_t " << locSelectorName << "::Process(Long64_t locEntry)" << endl
+                    << "{" << endl
+                    << "	// The Process() function is called for each entry in "
                        "the tree. "
                        "The entry argument"
-                    << endl;
-    locSourceStream << "	// specifies which entry in the currently loaded tree "
+                    << endl
+                    << "	// specifies which entry in the currently loaded tree "
                        "is to be processed."
-                    << endl;
-    locSourceStream << "	//" << endl;
-    locSourceStream << "	// This function should contain the \"body\" of the analysis. "
+                    << endl
+                    << "	//" << endl
+                    << "	// This function should contain the \"body\" of the analysis. "
                        "It can contain"
-                    << endl;
-    locSourceStream << "	// simple or elaborate selection criteria, run "
+                    << endl
+                    << "	// simple or elaborate selection criteria, run "
                        "algorithms on the data"
 
-                    << endl;
-    locSourceStream << "	// of the event and typically fill histograms." << endl;
-    locSourceStream << "	//" << endl;
-    locSourceStream << "	// The processing can be stopped by calling Abort()." << endl;
-    locSourceStream << "	// Use fStatus to set the return value of TTree::Process()." << endl;
-    locSourceStream << "	// The return value is currently not used." << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//CALL THIS FIRST" << endl;
-    locSourceStream << "	DSelector::Process(locEntry); //Gets the data from the "
+                    << endl
+                    << "	// of the event and typically fill histograms." << endl
+                    << "	//" << endl
+                    << "	// The processing can be stopped by calling Abort()." << endl
+                    << "	// Use fStatus to set the return value of TTree::Process()." << endl
+                    << "	// The return value is currently not used." << endl
+                    << endl
+                    << "	//CALL THIS FIRST" << endl
+                    << "	DSelector::Process(locEntry); //Gets the data from the "
                        "tree for the entry"
-                    << endl;
-    locSourceStream << "	//cout << \"RUN \" << Get_RunNumber() << \", EVENT \" << "
+                    << endl
+                    << "	//cout << \"RUN \" << Get_RunNumber() << \", EVENT \" << "
                        "Get_EventNumber() << endl;"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	/******************************************** GET POLARIZATION "
+                    << endl
+                    << endl
+                    << "	/******************************************** GET POLARIZATION "
                        "ORIENTATION ******************************************/"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//Only if the run number changes" << endl;
-    locSourceStream << "	//RCDB environment must be setup in order for this to "
+                    << endl
+                    << endl
+                    << "	//Only if the run number changes" << endl
+                    << "	//RCDB environment must be setup in order for this to "
                        "work! (Will "
                        "return false otherwise)"
-                    << endl;
-    locSourceStream << "	UInt_t locRunNumber = Get_RunNumber();" << endl;
-    locSourceStream << "	if(locRunNumber != dPreviousRunNumber)" << endl;
-    locSourceStream << "	{" << endl;
-    locSourceStream << "		dIsPolarizedFlag = "
+                    << endl
+                    << "	UInt_t locRunNumber = Get_RunNumber();" << endl
+                    << "	if(locRunNumber != dPreviousRunNumber)" << endl
+                    << "	{" << endl
+                    << "		dIsPolarizedFlag = "
                        "dAnalysisUtilities.Get_IsPolarizedBeam(locRunNumber, dIsPARAFlag);"
-                    << endl;
-    locSourceStream << "		dPreviousRunNumber = locRunNumber;" << endl;
-    locSourceStream << "	}" << endl;
-    locSourceStream << endl;
-    locSourceStream << "	/********************************************* SETUP "
+                    << endl
+                    << "		dPreviousRunNumber = locRunNumber;" << endl
+                    << "	}" << endl
+                    << endl
+                    << "	/********************************************* SETUP "
                        "UNIQUENESS "
                        "TRACKING ********************************************/"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//INSERT USER ANALYSIS UNIQUENESS TRACKING HERE" << endl;
-    locSourceStream << endl;
-    locSourceStream << "	/******************************************* LOOP OVER "
+                    << endl
+                    << endl
+                    << "	//INSERT USER ANALYSIS UNIQUENESS TRACKING HERE" << endl
+                    << endl
+                    << "	/******************************************* LOOP OVER "
                        "THROWN DATA "
                        "***************************************/"
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//Thrown beam: just use directly" << endl;
-    locSourceStream << "	double locBeamEnergyUsedForBinning = 0.0;" << endl;
-    locSourceStream << "	if(dThrownBeam != NULL)" << endl;
-    locSourceStream << "		locBeamEnergyUsedForBinning = "
+                    << endl
+                    << endl
+                    << "	//Thrown beam: just use directly" << endl
+                    << "	double locBeamEnergyUsedForBinning = 0.0;" << endl
+                    << "	if(dThrownBeam != NULL)" << endl
+                    << "		locBeamEnergyUsedForBinning = "
                        "dThrownBeam->Get_P4().E();"
                     << endl;
     if (extraDefaults)
@@ -318,21 +318,22 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
                         << "TLorentzVector locBeamP4 = dThrownBeam->Get_P4();" << endl;
         csvIn.close();
     }
-    locSourceStream << endl;
-    locSourceStream << "	//Loop over throwns" << endl;
-    locSourceStream << "	for(UInt_t loc_i = 0; loc_i < Get_NumThrown(); ++loc_i)" << endl;
-    locSourceStream << "	{" << endl;
-    locSourceStream << "		//Set branch array indices corresponding to "
-                       "this particle"
-                    << endl;
-    locSourceStream << "		dThrownWrapper->Set_ArrayIndex(loc_i);" << endl;
-    locSourceStream << endl;
-    locSourceStream << "		//Do stuff with the wrapper here ..." << endl;
-    locSourceStream << "		Particle_t locPID = dThrownWrapper->Get_PID();" << endl;
-    locSourceStream << "		TLorentzVector locThrownP4 = dThrownWrapper->Get_P4();"
 
-                    << endl;
-    locSourceStream << "		//cout << \"Thrown \" << loc_i << \": \" << locPID << "
+    locSourceStream << endl
+                    << "	//Loop over throwns" << endl
+                    << "	for(UInt_t loc_i = 0; loc_i < Get_NumThrown(); ++loc_i)" << endl
+                    << "	{" << endl
+                    << "		//Set branch array indices corresponding to "
+                       "this particle"
+                    << endl
+                    << "		dThrownWrapper->Set_ArrayIndex(loc_i);" << endl
+                    << endl
+                    << "		//Do stuff with the wrapper here ..." << endl
+                    << "		Particle_t locPID = dThrownWrapper->Get_PID();" << endl
+                    << "		TLorentzVector locThrownP4 = dThrownWrapper->Get_P4();"
+
+                    << endl
+                    << "		//cout << \"Thrown \" << loc_i << \": \" << locPID << "
                        "\", \" << "
                        "locThrownP4.Px() << \", \" << locThrownP4.Py() << \", \" << "
                        "locThrownP4.Pz() << \", \" << locThrownP4.E() << endl;"
@@ -513,51 +514,51 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
         csvIn.close();
     }
 
-    locSourceStream << endl;
-    locSourceStream << "	//OR Manually:" << endl;
-    locSourceStream << "	//BEWARE: Do not expect the particles to be at the "
+    locSourceStream << endl
+                    << "	//OR Manually:" << endl
+                    << "	//BEWARE: Do not expect the particles to be at the "
                        "same array indices "
                        "from one event to the next!!!!"
-                    << endl;
-    locSourceStream << "	//Why? Because while your channel may be the same, the "
+                    << endl
+                    << "	//Why? Because while your channel may be the same, the "
                        "pions/kaons/etc. will decay differently each event."
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//BRANCHES: "
+                    << endl
+                    << endl
+                    << "	//BRANCHES: "
                        "https://halldweb.jlab.org/wiki/index.php/"
                        "Analysis_TTreeFormat#TTree_Format:_Simulated_Data"
-                    << endl;
-    locSourceStream << "	TClonesArray** locP4Array = "
+                    << endl
+                    << "	TClonesArray** locP4Array = "
                        "dTreeInterface->Get_PointerToPointerTo_TClonesArray(\"Thrown__P4\");"
-                    << endl;
-    locSourceStream << "	TBranch* locPIDBranch = "
+                    << endl
+                    << "	TBranch* locPIDBranch = "
                        "dTreeInterface->Get_Branch(\"Thrown__PID\");"
-                    << endl;
-    locSourceStream << "/*" << endl;
-    locSourceStream << "	Particle_t locThrown1PID = "
+                    << endl
+                    << "/*" << endl
+                    << "	Particle_t locThrown1PID = "
                        "PDGtoPType(((Int_t*)locPIDBranch->GetAddress())[0]);"
-                    << endl;
-    locSourceStream << "	TLorentzVector locThrown1P4 = "
+                    << endl
+                    << "	TLorentzVector locThrown1P4 = "
                        "*((TLorentzVector*)(*locP4Array)->At(0));"
-                    << endl;
-    locSourceStream << "	cout << \"Particle 1: \" << locThrown1PID << \", \" << "
+                    << endl
+                    << "	cout << \"Particle 1: \" << locThrown1PID << \", \" << "
                        "locThrown1P4.Px() << \", \" << locThrown1P4.Py() << \", \" << "
                        "locThrown1P4.Pz() << \", \" << locThrown1P4.E() << endl;"
-                    << endl;
-    locSourceStream << "	Particle_t locThrown2PID = "
+                    << endl
+                    << "	Particle_t locThrown2PID = "
                        "PDGtoPType(((Int_t*)locPIDBranch->GetAddress())[1]);"
-                    << endl;
-    locSourceStream << "	TLorentzVector locThrown2P4 = "
+                    << endl
+                    << "	TLorentzVector locThrown2P4 = "
                        "*((TLorentzVector*)(*locP4Array)->At(1));"
-                    << endl;
-    locSourceStream << "	cout << \"Particle 2: \" << locThrown2PID << \", \" << "
+                    << endl
+                    << "	cout << \"Particle 2: \" << locThrown2PID << \", \" << "
                        "locThrown2P4.Px() << \", \" << locThrown2P4.Py() << \", \" << "
                        "locThrown2P4.Pz() << \", \" << locThrown2P4.E() << endl;"
-                    << endl;
-    locSourceStream << "*/" << endl;
-    locSourceStream << endl;
-    locSourceStream << endl;
-    locSourceStream << "	/******************************************* BIN THROWN DATA "
+                    << endl
+                    << "*/" << endl
+                    << endl
+                    << endl
+                    << "	/******************************************* BIN THROWN DATA "
                        "INTO "
                        "SEPARATE TREES FOR AMPTOOLS ***************************************/"
                     << endl;
@@ -656,56 +657,57 @@ void Print_SourceFile_MCGen(string locSelectorBaseName, DTreeInterface *locTreeI
         }
         csvIn.close();
     }
-    locSourceStream << endl;
-    locSourceStream << "/*" << endl;
-    locSourceStream << "	//THESE KEYS MUST BE DEFINED IN THE INIT SECTION "
+    locSourceStream << endl
+                    << "/*" << endl
+                    << "	//THESE KEYS MUST BE DEFINED IN THE INIT SECTION "
                        "(along with the "
                        "output file names)"
-                    << endl;
-    locSourceStream << "	if((locBeamEnergyUsedForBinning >= 8.0) && "
+                    << endl
+                    << "	if((locBeamEnergyUsedForBinning >= 8.0) && "
                        "(locBeamEnergyUsedForBinning < 9.0))"
-                    << endl;
-    locSourceStream << "		Fill_OutputTree(\"Bin1\"); //your user-defined key" << endl;
-    locSourceStream << "	else if((locBeamEnergyUsedForBinning >= 9.0) && "
+                    << endl
+                    << "		Fill_OutputTree(\"Bin1\"); //your user-defined key" << endl
+                    << "	else if((locBeamEnergyUsedForBinning >= 9.0) && "
                        "(locBeamEnergyUsedForBinning < 10.0))"
-                    << endl;
-    locSourceStream << "		Fill_OutputTree(\"Bin2\"); //your user-defined key" << endl;
-    locSourceStream << "	else if((locBeamEnergyUsedForBinning >= 10.0) && "
+                    << endl
+                    << "		Fill_OutputTree(\"Bin2\"); //your user-defined key" << endl
+                    << "	else if((locBeamEnergyUsedForBinning >= 10.0) && "
                        "(locBeamEnergyUsedForBinning < 11.0))"
-                    << endl;
-    locSourceStream << "		Fill_OutputTree(\"Bin3\"); //your user-defined key" << endl;
-    locSourceStream << "*/" << endl;
-    locSourceStream << "Fill_FlatTree();" << endl << "}" << endl;
-    locSourceStream << "	return kTRUE;" << endl;
-    locSourceStream << "}" << endl;
-    locSourceStream << endl;
-    locSourceStream << "void " << locSelectorName << "::Finalize(void)" << endl;
-    locSourceStream << "{" << endl;
-    locSourceStream << "	//Save anything to output here that you do not want to "
+                    << endl
+                    << "		Fill_OutputTree(\"Bin3\"); //your user-defined key" << endl
+                    << "*/" << endl
+                    << "Fill_FlatTree();" << endl
+                    << "}" << endl
+                    << "	return kTRUE;" << endl
+                    << "}" << endl
+                    << endl
+                    << "void " << locSelectorName << "::Finalize(void)" << endl
+                    << "{" << endl
+                    << "	//Save anything to output here that you do not want to "
                        "be in the "
                        "default DSelector output ROOT file."
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//Otherwise, don\'t do anything else (especially if "
+                    << endl
+                    << endl
+                    << "	//Otherwise, don\'t do anything else (especially if "
                        "you are using PROOF)."
-                    << endl;
-    locSourceStream << "		//If you are using PROOF, this function is "
+                    << endl
+                    << "		//If you are using PROOF, this function is "
                        "called on each thread,"
-                    << endl;
-    locSourceStream << "		//so anything you do will not have the "
+                    << endl
+                    << "		//so anything you do will not have the "
                        "combined information from "
                        "the various threads."
-                    << endl;
-    locSourceStream << "		//Besides, it is best-practice to do "
+                    << endl
+                    << "		//Besides, it is best-practice to do "
                        "post-processing (e.g. "
                        "fitting) separately, in case there is a problem."
-                    << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//DO YOUR STUFF HERE" << endl;
-    locSourceStream << endl;
-    locSourceStream << "	//CALL THIS LAST" << endl;
-    locSourceStream << "	DSelector::Finalize(); //Saves results to the output file" << endl;
-    locSourceStream << "}" << endl;
+                    << endl
+                    << endl
+                    << "	//DO YOUR STUFF HERE" << endl
+                    << endl
+                    << "	//CALL THIS LAST" << endl
+                    << "	DSelector::Finalize(); //Saves results to the output file" << endl
+                    << "}" << endl;
 
     locSourceStream.close();
 }

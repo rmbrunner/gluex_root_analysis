@@ -1,6 +1,5 @@
 #include "MakeDSelector.h"
 
-
 void Print_HeaderFile(string locSelectorBaseName, DTreeInterface *locTreeInterface,
                       map<int, map<int, pair<Particle_t, string>>> &locComboInfoMap)
 {
@@ -9,49 +8,49 @@ void Print_HeaderFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     ofstream locHeaderStream;
     locHeaderStream.open(locHeaderName.c_str());
 
-    locHeaderStream << "#ifndef " << locSelectorName << "_h" << endl;
-    locHeaderStream << "#define " << locSelectorName << "_h" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "#include <iostream>" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "#include \"DSelector/DSelector.h\"" << endl;
-    locHeaderStream << "#include \"DSelector/DHistogramActions.h\"" << endl;
-    locHeaderStream << "#include \"DSelector/DCutActions.h\"" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "#include \"TH1I.h\"" << endl;
-    locHeaderStream << "#include \"TH2I.h\"" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "class " << locSelectorName << " : public DSelector" << endl;
-    locHeaderStream << "{" << endl;
-    locHeaderStream << "	public:" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "		" << locSelectorName
-                    << "(TTree* locTree = NULL) : DSelector(locTree){}" << endl;
-    locHeaderStream << "		virtual ~" << locSelectorName << "(){}" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "		void Init(TTree *tree);" << endl;
-    locHeaderStream << "		Bool_t Process(Long64_t entry);" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "	private:" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "		void Get_ComboWrappers(void);" << endl;
-    locHeaderStream << "		void Finalize(void);" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "		// BEAM POLARIZATION INFORMATION" << endl;
-    locHeaderStream << "		UInt_t dPreviousRunNumber;" << endl;
-    locHeaderStream << "		bool dIsPolarizedFlag; //else is AMO" << endl;
-    locHeaderStream << "		bool dIsPARAFlag; //else is PERP or AMO" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "		bool dIsMC;" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "		// ANALYZE CUT ACTIONS" << endl;
-    locHeaderStream << "		// // Automatically makes mass histograms "
+    locHeaderStream << "#ifndef " << locSelectorName << "_h" << endl
+                    << "#define " << locSelectorName << "_h" << endl
+                    << endl
+                    << "#include <iostream>" << endl
+                    << endl
+                    << "#include \"DSelector/DSelector.h\"" << endl
+                    << "#include \"DSelector/DHistogramActions.h\"" << endl
+                    << "#include \"DSelector/DCutActions.h\"" << endl
+                    << endl
+                    << "#include \"TH1I.h\"" << endl
+                    << "#include \"TH2I.h\"" << endl
+                    << endl
+                    << "class " << locSelectorName << " : public DSelector" << endl
+                    << "{" << endl
+                    << "	public:" << endl
+                    << endl
+                    << "		" << locSelectorName
+                    << "(TTree* locTree = NULL) : DSelector(locTree){}" << endl
+                    << "		virtual ~" << locSelectorName << "(){}" << endl
+                    << endl
+                    << "		void Init(TTree *tree);" << endl
+                    << "		Bool_t Process(Long64_t entry);" << endl
+                    << endl
+                    << "	private:" << endl
+                    << endl
+                    << "		void Get_ComboWrappers(void);" << endl
+                    << "		void Finalize(void);" << endl
+                    << endl
+                    << "		// BEAM POLARIZATION INFORMATION" << endl
+                    << "		UInt_t dPreviousRunNumber;" << endl
+                    << "		bool dIsPolarizedFlag; //else is AMO" << endl
+                    << "		bool dIsPARAFlag; //else is PERP or AMO" << endl
+                    << endl
+                    << "		bool dIsMC;" << endl
+                    << endl
+                    << "		// ANALYZE CUT ACTIONS" << endl
+                    << "		// // Automatically makes mass histograms "
                        "where one cut is missing"
+                    << endl
+                    << "		DHistogramAction_AnalyzeCutActions* dAnalyzeCutActions;" << endl
+                    << endl
+                    << "		//CREATE REACTION-SPECIFIC PARTICLE ARRAYS" << endl
                     << endl;
-    locHeaderStream << "		DHistogramAction_AnalyzeCutActions* dAnalyzeCutActions;" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "		//CREATE REACTION-SPECIFIC PARTICLE ARRAYS" << endl;
-    locHeaderStream << endl;
 
     // print particle step, particle wrapper declarations
     map<int, map<int, pair<Particle_t, string>>>::iterator locStepIterator =
@@ -59,8 +58,8 @@ void Print_HeaderFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     for (; locStepIterator != locComboInfoMap.end(); ++locStepIterator)
     {
         int locStepIndex = locStepIterator->first;
-        locHeaderStream << "		//Step " << locStepIndex << endl;
-        locHeaderStream << "		DParticleComboStep* dStep" << locStepIndex << "Wrapper;"
+        locHeaderStream << "		//Step " << locStepIndex << endl
+                        << "		DParticleComboStep* dStep" << locStepIndex << "Wrapper;"
                         << endl;
 
         map<int, pair<Particle_t, string>> &locStepInfoMap = locStepIterator->second;
@@ -117,19 +116,19 @@ void Print_HeaderFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     }
 
     // resume
-    locHeaderStream << "		// DEFINE YOUR HISTOGRAMS HERE" << endl;
-    locHeaderStream << "		// EXAMPLES:" << endl;
-    locHeaderStream << "		TH1I* dHist_MissingMassSquared;" << endl;
-    locHeaderStream << "		TH1I* dHist_BeamEnergy;" << endl;
-    locHeaderStream << "		TH1I* dHist_BeamEnergy_BestChiSq;" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "	ClassDef(" << locSelectorName << ", 0);" << endl;
-    locHeaderStream << "};" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "void " << locSelectorName << "::Get_ComboWrappers(void)"
+    locHeaderStream << "		// DEFINE YOUR HISTOGRAMS HERE" << endl
+                    << "		// EXAMPLES:" << endl
+                    << "		TH1I* dHist_MissingMassSquared;" << endl
+                    << "		TH1I* dHist_BeamEnergy;" << endl
+                    << "		TH1I* dHist_BeamEnergy_BestChiSq;" << endl
+                    << endl
+                    << "	ClassDef(" << locSelectorName << ", 0);" << endl
+                    << "};" << endl
+                    << endl
+                    << "void " << locSelectorName << "::Get_ComboWrappers(void)"
 
-                    << endl;
-    locHeaderStream << "{" << endl;
+                    << endl
+                    << "{" << endl;
 
     // print particle step, particle wrapper assignments
     for (locStepIterator = locComboInfoMap.begin(); locStepIterator != locComboInfoMap.end();
@@ -204,9 +203,7 @@ void Print_HeaderFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
     }
 
     // resume
-    locHeaderStream << "}" << endl;
-    locHeaderStream << endl;
-    locHeaderStream << "#endif // " << locSelectorName << "_h" << endl;
+    locHeaderStream << "}" << endl << endl << "#endif // " << locSelectorName << "_h" << endl;
 
     locHeaderStream.close();
 }

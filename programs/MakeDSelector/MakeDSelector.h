@@ -8,8 +8,8 @@
 #include <TFile.h>
 #include <TTree.h>
 
-#include "DTreeInterface.h"
-#include "particleType.h"
+#include "../../libraries/DSelector/DTreeInterface.h"
+#include "../../libraries/DSelector/particleType.h"
 
 void Print_Usage(void);
 void Print_HeaderFile(string locSelectorBaseName, DTreeInterface *locTreeInterface,
