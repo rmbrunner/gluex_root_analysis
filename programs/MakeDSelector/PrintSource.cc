@@ -33,7 +33,7 @@ void Print_SourceFile(string locSelectorBaseName, DTreeInterface *locTreeInterfa
 #include <TLorentzRotation.h>
 
 void )" << locSelectorName
-                    << R"(::Init(TTree *locTree)
+                    << R"CODE(::Init(TTree *locTree)
 {
 	// USERS: IN THIS FUNCTION, ONLY MODIFY SECTIONS WITH A "USER" OR "EXAMPLE" LABEL. LEAVE THE REST ALONE.
 
@@ -116,11 +116,11 @@ void )" << locSelectorName
 
 	//EXAMPLE MANUAL HISTOGRAMS:
 	dHist_MissingMassSquared = new TH1I("MissingMassSquared", ";Missing Mass Squared (GeV/c^{2})^{2}", 600, -0.06, 0.06);
-	dHist_BeamEnergy = new TH1I("BeamEnergy", ";Beam Energy (GeV)\", 600, 0.0, 12.0);
-	dHist_BeamEnergy_BestChiSq = new TH1I("BeamEnergy_BestChiSq", ";Beam Energy (GeV)\", 600, 0.0, 12.0);
+	dHist_BeamEnergy = new TH1I("BeamEnergy", ";Beam Energy (GeV)", 600, 0.0, 12.0);
+	dHist_BeamEnergy_BestChiSq = new TH1I("BeamEnergy_BestChiSq", ";Beam Energy (GeV)", 600, 0.0, 12.0);
 
 }
-)" << endl;
+)CODE" << endl;
 
     set<string> branches;
     string finalState;
